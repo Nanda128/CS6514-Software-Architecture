@@ -6,8 +6,22 @@ import matplotlib.pyplot as plt
 with open("eva-data.json", "r", encoding="utf-8") as file:
     eva_data = json.load(file)
 
+
+def get_country(prompt):
+    while True:
+        country = input(prompt).strip()
+        if country in ("USA", "Russia"):
+            return country
+        if country == "USSR":
+            return "Russia"
+        if country == "America":
+            return "USA"
+        print("Invalid country. Please enter USA, Russia, or USSR.")
+
+
 records = []
-selected_country = "USA"
+first_country = get_country("Enter the first country (USA, Russia, or USSR): ")
+second_country = get_country("Enter the second country (USA, Russia, or USSR): ")
 country_totals = {}
 
 for eva in eva_data:
@@ -40,8 +54,19 @@ for date, duration_hours in records:
     dates.append(date)
     cumulative_hours.append(total_hours)
 
-country_total_hours = country_totals.get(selected_country, 0.0)
-print(f"{selected_country} total EVA duration: {country_total_hours:.2f} hours")
+first_country_total = country_totals.get(first_country, 0.0)
+second_country_total = country_totals.get(second_country, 0.0)
+print(f"{first_country} total EVA duration: {first_country_total:.2f} hours")
+print(f"{second_country} total EVA duration: {second_country_total:.2f} hours")
+
+if first_country_total > second_country_total:
+    greater_country = first_country
+elif second_country_total > first_country_total:
+    greater_country = second_country
+else:
+    greater_country = "Neither country; both totals are equal"
+
+print(f"Greater total: {greater_country}")
 plt.plot(dates, cumulative_hours)
 plt.xlabel("Year")
 plt.ylabel("Cumulative EVA duration (hours)")
