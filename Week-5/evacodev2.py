@@ -20,28 +20,51 @@ def get_country(prompt):
 
 
 records = []
-first_country = get_country("Enter the first country (USA, Russia, or USSR): ")
-second_country = get_country("Enter the second country (USA, Russia, or USSR): ")
+first_country = get_country("Enter the first country (USA, or Russia): ")
+second_country = get_country("Enter the second country (USA, or Russia): ")
 country_totals = {}
+duration_categories = {"Short": 0, "Standard": 0, "Long": 0}
 
 for eva in eva_data:
     date_text = eva.get("date")
     duration_text = eva.get("duration")
     country = eva.get("country")
 
-    if not date_text or not duration_text or not country:
+    if not duration_text:
+        continue
+
+    try:
+        hours, minutes = map(int, duration_text.split(":"))
+        duration_hours = hours + minutes / 60
+    except (TypeError, ValueError):
+        if date_text and country:
+            print("Malformed time/duration")
+        continue
+
+    if duration_hours < 4:
+        duration_categories["Short"] += 1
+    elif duration_hours < 7:
+        duration_categories["Standard"] += 1
+    else:
+        duration_categories["Long"] += 1
+
+    if not date_text or not country:
         continue
 
     try:
         date = datetime.fromisoformat(date_text)
-        hours, minutes = map(int, duration_text.split(":"))
-        duration_hours = hours + minutes / 60
     except (TypeError, ValueError):
         print("Malformed time/duration")
         continue
 
     records.append((date, duration_hours))
     country_totals[country] = country_totals.get(country, 0.0) + duration_hours
+
+category_total = sum(duration_categories.values())
+print("EVA duration categories:")
+for category, count in duration_categories.items():
+    percentage = count / category_total * 100 if category_total else 0
+    print(f"{category}: {count} ({percentage:.2f}%)")
 
 records.sort(key=lambda record: record[0])
 
